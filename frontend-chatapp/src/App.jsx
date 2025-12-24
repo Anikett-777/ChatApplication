@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import toast from 'react-hot-toast'
 import JoinCreateChat from './components/JoinCreateChat'
+import ChatPage from './components/ChatPage'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -11,6 +12,7 @@ function App() {
   return (
     <div>
     <JoinCreateChat/>
+   
     </div>
   );
 }
