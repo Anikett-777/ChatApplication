@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
-@CrossOrigin("")
+@CrossOrigin("http://localhost:5173")
 public class RoomControllers {
 
     private roomRepo roomRepo;
@@ -21,7 +21,7 @@ public class RoomControllers {
     }
 
     //create room
-    @PostMapping
+/*    @PostMapping
     public ResponseEntity<?> createRoom(@RequestBody String roomId){
         if(roomRepo.findByRoomId(roomId)!=null)
         {
@@ -33,6 +33,17 @@ public class RoomControllers {
         room.setRoomId(roomId);
          Room savedRoom =  roomRepo.save(room);
          return ResponseEntity.status(HttpStatus.CREATED).body(room);
+    }*/
+
+    @PostMapping
+    public ResponseEntity<?> createRoom(@RequestBody Room room) {
+
+        if (roomRepo.findByRoomId(room.getRoomId()) != null) {
+            return ResponseEntity.badRequest().body("Room already Exist");
+        }
+
+        Room savedRoom = roomRepo.save(room);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRoom);
     }
 
     //get room
