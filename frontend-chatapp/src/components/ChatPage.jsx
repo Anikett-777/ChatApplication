@@ -1,7 +1,25 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MdAttachFile, MdSend } from "react-icons/md";
+import useChatContext from "../context/ChatContext";
+import { useNavigate } from "react-router";
+import SockJS from "sockjs-client";
+import { baseURL } from "../config/AxiosHelper";
+import toast from "react-hot-toast";
+import { Stomp } from "@stomp/stompjs";
 
 const ChatPage = () => {
+  const { roomId, currentUser, connected } = useChatContext();
+  // console.log(roomId);
+  // console.log(currentUser);
+  // console.log(connected);
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!connected) {
+      navigate("/");
+    }
+  }, [connected, roomId, currentUser]);
+
   const [message, setMessages] = useState([
     {
       content: "hii",
@@ -20,8 +38,53 @@ const ChatPage = () => {
   const inputRef = useRef(null);
   const chatBox = useRef(null);
   const [stompClient, setStompClient] = useState(null);
-  const [roomId, setRoomId] = useState("");
-  const [currentUser]=useState("Aniket") 
+  // const [roomId, setRoomId] = useState("");
+  // const [currentUser]=useState("Aniket")
+
+  //Page Init;
+  //Message Load Here
+
+  //To Init Stomp Client
+  //Subscribe
+  useEffect(() => {
+    const connectWebSocket = () => {
+      // Make Sock Js Object 
+      const sock = new SockJS(`${baseURL}/chat`);
+
+      const client = Stomp.over(sock)
+      client.connect({},()=>{
+
+        setStompClient(client);
+        toast.success("Connected..");
+
+        client.subscribe(`/topic/room/${roomId}`,(message)=>{
+          console.log(message);
+          const newMessage = JSON.parse(message.body);
+          setMessages((prev)=>[...prev,newMessage])
+          
+        })
+      })
+
+    };
+    connectWebSocket();
+  }, [roomId]);
+
+  //Send Message handle
+    const sendMessage = async ()=>{
+      if(stompClient && connected && input.trim() ){
+        console.log(input);
+
+        const message={
+          sender:currentUser,
+          content:input,
+          roomId:roomId
+        }
+
+        stompClient.send(`/app/sendMessage/${roomId}`,{},JSON.stringify(message));
+        setInput("");
+        
+      }
+  }
 
   return (
     // Header Section
@@ -56,8 +119,17 @@ const ChatPage = () => {
         {/* Message Container */}
 
         {message.map((message, index) => (
-          <div key={index} className={`flex ${message.sender==currentUser? "justify-end" : "justify-start"} `}>
-            <div className={`my-2 ${message.sender===currentUser ?  "bg-green-800" : "bg-gray-800"} p-2 max-w-xs rounded `}>
+          <div
+            key={index}
+            className={`flex ${
+              message.sender == currentUser ? "justify-end" : "justify-start"
+            } `}
+          >
+            <div
+              className={`my-2 ${
+                message.sender === currentUser ? "bg-green-800" : "bg-gray-800"
+              } p-2 max-w-xs rounded `}
+            >
               <div className="flex flex-row gap-2">
                 <img
                   className="h-10 w-10"
@@ -80,6 +152,8 @@ const ChatPage = () => {
       <div className="fixed bottom-2 w-full h-16 ">
         <div className="h-12 w-1/2 rounded-full flex items-center justify-between mx-auto gap-2 dark:bg-gray-900 pr-10 py-2 focus:right-0 ">
           <input
+          value={input}
+          onChange={(e)=>{setInput(e.target.value)}}
             type="text"
             placeholder="Type Your Message Here..."
             className="px-5 dark:border-gray-600  focus:outline-none dark:bg-gray-800 rounded-4xl w-full h-12"
@@ -88,7 +162,7 @@ const ChatPage = () => {
             <button className="dark:bg-purple-600 w-14 h-12 flex justify-center items-center rounded-full   ">
               <MdAttachFile size={20} />
             </button>
-            <button className="dark:bg-green-600 w-14 h-12 flex justify-center items-center rounded-full   ">
+            <button onClick={sendMessage} className="dark:bg-green-600 w-14 h-12 flex justify-center items-center rounded-full   ">
               <MdSend size={20} />
             </button>
           </div>
