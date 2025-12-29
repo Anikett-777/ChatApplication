@@ -8,14 +8,10 @@ import { Toaster } from "react-hot-toast";
 import { ChatProvider } from "./context/ChatContext.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-     
-       <ChatProvider>
-        <AppRoutes/>
-       </ChatProvider>
-       <Toaster/>
-    </BrowserRouter>
- 
-  </StrictMode>
+  <BrowserRouter>
+    <ChatProvider>
+      <AppRoutes />
+    </ChatProvider>
+    <Toaster />
+  </BrowserRouter>
 );

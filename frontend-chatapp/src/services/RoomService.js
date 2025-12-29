@@ -25,3 +25,8 @@ export const joinChatApi= async (roomId)=>{
    const response =  await httpClient.get(`/api/v1/rooms/${roomId}`)
    return response.data;
 }
+
+export const getMessagess= async(roomId)=>{
+    const response = await httpClient.get(`api/v1/rooms/${roomId}/messages`)
+    return response.data;
+}
